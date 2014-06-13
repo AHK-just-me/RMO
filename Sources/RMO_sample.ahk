@@ -15,12 +15,12 @@ REMOTE_SIZE := TCITEM_SIZE + MAX_TEXT_SIZE ; size of the remote buffer -> size o
 ; Get control's HWND  --------------------------------------------------------------------------------------------------
 ControlGet, HTab, Hwnd, , %ControlClass%, %WindowClass%
 If (ErrorLevel) {
-   MsgBox, Couldn't get PSPad's tab control!
+   MsgBox, 0, ControlGet, Couldn't get the tab control!
    ExitApp
 }
 ; Get the 'process identifier' (HWND or PID) ---------------------------------------------------------------------------
 ; WinGet Proc, PID, ahk_id %HTab% ; using the PID
-; WinGet Proc, ID, %WindowClass%  ; using the HWND of the main window
+; WinGet Proc, ID, %WindowClass%  ; using the class of the main window
 Proc := HTab  ; using the HWND of the control
 ; Create the remote buffer ---------------------------------------------------------------------------------------------
 Remote := RMO_Create(Proc, REMOTE_SIZE)
@@ -41,16 +41,16 @@ Remote.Put(LocalVar) ; object syntax
 Tabs := []
 TCM_GETITEMCOUNT := 0x1304
 TCM_GETITEM := A_IsUnicode ? 0x133C : 0x1305
-SendMessage, TCM_GETITEMCOUNT, , , , ahk_id %HTab%
+SendMessage, %TCM_GETITEMCOUNT%, , , , ahk_id %HTab%
 Loop % ((ErrorLevel != "FAIL") ? ErrorLevel : 0) {
    ; Retrieve the item text.
-   SendMessage, TCM_GETITEM, A_Index-1, Remote.Ptr, , ahk_id %HTab%
+   SendMessage, %TCM_GETITEM%, % (A_Index - 1), % Remote.Ptr, , ahk_id %HTab%
    If (ErrorLevel = 1) ; Success
       ; Get TabItemText from remote buffer with offset TCITEM_SIZE and size MAX_TEXT_SIZE
       RMO_Get(Remote, LocalText, TCITEM_SIZE, MAX_TEXT_SIZE) ; function syntax
    Else
       LocalText := ""
-   ; Store the value even on failure
+   ; Store a value even on failure
    VarSetCapacity(LocalText, -1) ; LocalText contains a string
    Tabs[A_Index] := LocalText
 }
